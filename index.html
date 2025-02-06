@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be My Valentine - Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #ff9a9e, #fad0c4);
+      color: white;
+    }
+    h1 {
+      position: absolute;
+      top: calc(10% - 100px); /* Move 100px upwards from the top */
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      z-index: 10;
+      white-space: nowrap; /* Prevent text from wrapping to next line */
+    }
+    #gameCanvas {
+      display: block;
+      margin: 0 auto;
+      background: #ffe6e6;
+      border: 3px solid #ff4b5c;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    #valentineMessage {
+      display: none;
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%) translateY(50%);
+      text-align: center;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      width: 300px;
+    }
+    #valentineMessage h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+    .button {
+      padding: 15px 30px;
+      background-color: #ff4b5c;
+      color: white;
+      font-size: 1.5rem;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin: 10px;
+      width: 100%;
+    }
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Will You Be My Valentine? 💖</h1>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="valentineMessage">
+    <h1>Will You Be My Valentine? 💖</h1>
+    <div class="button-container">
+      <button class="button" onclick="alert('Manish will be your valentine and partner for lifetime.❤️')">Yes, of course! 😊</button>
+      <button class="button" onclick="alert('You can not deny you are stuck with me forever. 😏')">No, but you're adorable! 😜</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let player = { x: 50, y: 50, size: 30, color: 'red', speed: 4 };
+    let hearts = [];
+    let score = 0;
+    let level = 1;
+    const maxLevels = 3;
+    let animationId;
+    let target = { x: player.x, y: player.y };
+
+    function generateHearts(count) {
+      hearts = [];
+      for (let i = 0; i < count; i++) {
+        hearts.push({
+          x: Math.random() * (canvas.width - 30),
+          y: Math.random() * (canvas.height - 30),
+          size: 20 + Math.random() * 10,
+          color: 'pink'
+        });
+      }
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawHearts() {
+      hearts.forEach(heart => {
+        ctx.fillStyle = heart.color;
+        ctx.beginPath();
+        ctx.moveTo(heart.x, heart.y);
+        ctx.bezierCurveTo(heart.x - heart.size / 2, heart.y - heart.size / 2, 
+                          heart.x - heart.size / 2, heart.y + heart.size / 2, 
+                          heart.x, heart.y + heart.size);
+        ctx.bezierCurveTo(heart.x + heart.size / 2, heart.y + heart.size / 2, 
+                          heart.x + heart.size / 2, heart.y - heart.size / 2, 
+                          heart.x, heart.y);
+        ctx.fill();
+      });
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawHearts();
+
+      if (Math.hypot(target.x - player.x, target.y - player.y) > player.speed) {
+        const angle = Math.atan2(target.y - player.y, target.x - player.x);
+        player.x += Math.cos(angle) * player.speed;
+        player.y += Math.sin(angle) * player.speed;
+      }
+
+      hearts = hearts.filter(heart => {
+        const dist = Math.hypot(player.x - heart.x, player.y - heart.y);
+        if (dist < player.size + heart.size) {
+          score++;
+          return false;
+        }
+        return true;
+      });
+
+      if (hearts.length === 0) {
+        if (level < maxLevels) {
+          level++;
+          score = 0;
+          alert(`Level ${level - 1} Complete! Welcome to Level ${level} 🎉`);
+          generateHearts(5 + level * 3);
+        } else {
+          document.getElementById('valentineMessage').style.display = 'block';
+          cancelAnimationFrame(animationId);
+          return;
+        }
+      }
+
+      animationId = requestAnimationFrame(update);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      target.x = e.clientX - rect.left;
+      target.y = e.clientY - rect.top;
+    });
+
+    generateHearts(5);
+    update();
+  </script>
+</body>
+</html>
